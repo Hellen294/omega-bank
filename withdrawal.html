@@ -3,17 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Withdraw Money</title>
+    <title>Withdraw</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        .header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .header img {
+            max-width: 100px;
+            height: auto;
+        }
+        .header .nav-link {
+            color: #007bff;
+        }
+    </style>
 </head>
 <body>
+    <div class="header">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <h1>Banking Dashboard</h1>
+                </div>
+                <div class="col">
+                    <nav class="nav">
+                        <a class="nav-link" href="index.html">Home</a>
+                        <a class="nav-link" href="dashboard.html">Dashboard</a>
+                        <a class="nav-link" href="deposit.html">Deposit</a>
+                        <a class="nav-link" href="withdraw.html">Withdraw</a>
+                        <a class="nav-link" href="transaction.html">Transaction History</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
-        <h2>Withdraw Money</h2>
-        <form id="withdrawal-form">
+        <h2>Withdraw Funds</h2>
+        <form id="withdraw-form">
             <div class="form-group">
-                <label for="amount">Amount to Withdraw ($)</label>
-                <input type="number" class="form-control" id="amount" min="0" step="0.01" required>
+                <label for="amount">Amount</label>
+                <input type="number" class="form-control" id="amount" placeholder="Enter amount to withdraw" required>
             </div>
             <button type="submit" class="btn btn-primary">Withdraw</button>
         </form>
@@ -34,120 +67,42 @@
           measurementId: "G-J92WNBY5RL"
        };
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database();
+    </script>
 
-        // Check if user is authenticated
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                // User is signed in
-                const withdrawalForm = document.getElementById('withdrawal-form');
-                withdrawalForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    const amount = parseFloat(document.getElementById('amount').value);
-                    if (!isNaN(amount) && amount > 0) {
-                        // Update user's balance in the database
-                        db.ref('users/' + user.uid).transaction((userData) => {
-                            if (userData) {
-                                if ((userData.balance || 0) >= amount) {
-                                    userData.balance -= amount;
-                                } else {
-                                    alert('Insufficient balance for this withdrawal.');
-                                    return; // Abort transaction
-                                }
-                            }
-                            return userData;
-                        }, (error, committed, snapshot) => {
-                            if (error) {
-                                console.error('Transaction failed abnormally:', error);
-                            } else if (!committed) {
-                                console.warn('Transaction aborted (possibly due to concurrency issue)');
-                            } else {
-                                console.log('Withdrawal successful!');
-                                // Redirect or show success message
-                                alert('Withdrawal successful!');
-                                window.location.href = 'dashboard.html'; // Redirect to dashboard after withdrawal
-                            }
-                        });
-                    } else {
-                        alert('Please enter a valid amount to withdraw.');
-                    }
-                });
-            } else {
-                // User is not signed in, redirect to login page
-                window.location.href = 'login.html';
-            }
-        });
+    <script>
+        document.getElementById('withdraw-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const amount = document.getElementById('amount').value;
+            const userId = firebase.auth().currentUser.uid;
 
-        function logout() {
-            auth.signOut()
-                .then(() => {
-                    // Sign-out successful, redirect to login page
-                    window.location.href = 'login.html';
-                })
-                .catch((error) => {
-                    console.error('Error signing out:', error);
-                });
-        }
-// Inside the transaction callback for withdrawal
-db.ref('users/' + user.uid).transaction((userData) => {
-    if (userData) {
-        if ((userData.balance || 0) >= amount) {
-            userData.balance -= amount;
-            // Log the transaction
-            const transaction = {
-                date: Date.now(),
-                type: 'Withdrawal',
-                amount: amount
-            };
-            db.ref('users/' + user.uid + '/transactions').push(transaction);
-        } else {
-            alert('Insufficient balance for this withdrawal.');
-            return; // Abort transaction
-        }
-    }
-    return userData;
-}, (error, committed, snapshot) => {
-    // Handle the result
-});
-const withdrawalForm = document.getElementById('withdrawal-form');
-withdrawalForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const amount = parseFloat(document.getElementById('amount').value);
-    if (!isNaN(amount) && amount > 0) {
-        db.ref('users/' + user.uid).transaction((userData) => {
-            if (userData) {
-                if ((userData.balance || 0) >= amount) {
-                    userData.balance -= amount;
-                    const transaction = {
-                        date: Date.now(),
-                        type: 'Withdrawal',
-                        amount: amount
-                    };
-                    db.ref('users/' + user.uid + '/transactions').push(transaction);
-                } else {
-                    alert('Insufficient balance for this withdrawal.');
-                    return; // Abort transaction
+            // Get current balance
+            const userRef = firebase.database().ref('users/' + userId);
+            userRef.once('value').then(function(snapshot) {
+                const currentBalance = snapshot.val().balance;
+                
+                if (amount > currentBalance) {
+                    alert('Insufficient balance');
+                    return;
                 }
-            }
-            return userData;
-        }, (error, committed, snapshot) => {
-            if (error) {
-                console.error('Transaction failed abnormally:', error);
-            } else if (!committed) {
-                console.warn('Transaction aborted (possibly due to concurrency issue)');
-            } else {
-                console.log('Withdrawal successful!');
-                alert('Withdrawal successful!');
-                window.location.href = 'dashboard.html';
-            }
+
+                // Update user balance in Firebase
+                const newBalance = parseFloat(currentBalance) - parseFloat(amount);
+                userRef.update({
+                    balance: newBalance
+                });
+
+                // Store transaction details in Firebase
+                const transactionRef = firebase.database().ref('transactions/' + userId).push();
+                transactionRef.set({
+                    type: 'withdrawal',
+                    amount: amount,
+                    date: new Date().toISOString(),
+                    transactionId: transactionRef.key
+                });
+
+                alert('Withdrawal successful');
+            });
         });
-    } else {
-        alert('Please enter a valid amount to withdraw.');
-    }
-});
-
-
     </script>
 
     <!-- Bootstrap JS and dependencies -->
