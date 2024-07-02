@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdraw Money</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Withdraw Money</h2>
+        <form id="withdrawal-form">
+            <div class="form-group">
+                <label for="amount">Amount to Withdraw ($)</label>
+                <input type="number" class="form-control" id="amount" min="0" step="0.01" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Withdraw</button>
+        </form>
+    </div>
+
+    <!-- Firebase Configuration and Initialization -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-database.js"></script>
+    <script>
+       const firebaseConfig = {
+          apiKey: "AIzaSyBA_gGITL3vOX_wymV8m3c7h_2kYxUEL0A",
+          authDomain: "email-5e336.firebaseapp.com",
+          projectId: "email-5e336",
+          storageBucket: "email-5e336.appspot.com",
+          messagingSenderId: "561655323170",
+          appId: "1:561655323170:web:42fcf886c34f2d5a16487b",
+          measurementId: "G-J92WNBY5RL"
+       };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        // Check if user is authenticated
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in
+                const withdrawalForm = document.getElementById('withdrawal-form');
+                withdrawalForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const amount = parseFloat(document.getElementById('amount').value);
+                    if (!isNaN(amount) && amount > 0) {
+                        // Update user's balance in the database
+                        db.ref('users/' + user.uid).transaction((userData) => {
+                            if (userData) {
+                                if ((userData.balance || 0) >= amount) {
+                                    userData.balance -= amount;
+                                } else {
+                                    alert('Insufficient balance for this withdrawal.');
+                                    return; // Abort transaction
+                                }
+                            }
+                            return userData;
+                        }, (error, committed, snapshot) => {
+                            if (error) {
+                                console.error('Transaction failed abnormally:', error);
+                            } else if (!committed) {
+                                console.warn('Transaction aborted (possibly due to concurrency issue)');
+                            } else {
+                                console.log('Withdrawal successful!');
+                                // Redirect or show success message
+                                alert('Withdrawal successful!');
+                                window.location.href = 'dashboard.html'; // Redirect to dashboard after withdrawal
+                            }
+                        });
+                    } else {
+                        alert('Please enter a valid amount to withdraw.');
+                    }
+                });
+            } else {
+                // User is not signed in, redirect to login page
+                window.location.href = 'login.html';
+            }
+        });
+
+        function logout() {
+            auth.signOut()
+                .then(() => {
+                    // Sign-out successful, redirect to login page
+                    window.location.href = 'login.html';
+                })
+                .catch((error) => {
+                    console.error('Error signing out:', error);
+                });
+        }
+// Inside the transaction callback for withdrawal
+db.ref('users/' + user.uid).transaction((userData) => {
+    if (userData) {
+        if ((userData.balance || 0) >= amount) {
+            userData.balance -= amount;
+            // Log the transaction
+            const transaction = {
+                date: Date.now(),
+                type: 'Withdrawal',
+                amount: amount
+            };
+            db.ref('users/' + user.uid + '/transactions').push(transaction);
+        } else {
+            alert('Insufficient balance for this withdrawal.');
+            return; // Abort transaction
+        }
+    }
+    return userData;
+}, (error, committed, snapshot) => {
+    // Handle the result
+});
+const withdrawalForm = document.getElementById('withdrawal-form');
+withdrawalForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const amount = parseFloat(document.getElementById('amount').value);
+    if (!isNaN(amount) && amount > 0) {
+        db.ref('users/' + user.uid).transaction((userData) => {
+            if (userData) {
+                if ((userData.balance || 0) >= amount) {
+                    userData.balance -= amount;
+                    const transaction = {
+                        date: Date.now(),
+                        type: 'Withdrawal',
+                        amount: amount
+                    };
+                    db.ref('users/' + user.uid + '/transactions').push(transaction);
+                } else {
+                    alert('Insufficient balance for this withdrawal.');
+                    return; // Abort transaction
+                }
+            }
+            return userData;
+        }, (error, committed, snapshot) => {
+            if (error) {
+                console.error('Transaction failed abnormally:', error);
+            } else if (!committed) {
+                console.warn('Transaction aborted (possibly due to concurrency issue)');
+            } else {
+                console.log('Withdrawal successful!');
+                alert('Withdrawal successful!');
+                window.location.href = 'dashboard.html';
+            }
+        });
+    } else {
+        alert('Please enter a valid amount to withdraw.');
+    }
+});
+
+
+    </script>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+</body>
+</html>
