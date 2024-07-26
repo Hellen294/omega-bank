@@ -12,18 +12,21 @@
         }
         .message {
             margin-bottom: 10px;
-            padding: 5px;
+            padding: 10px;
             border-radius: 5px;
+            word-wrap: break-word; /* Ensures long words break nicely */
         }
         .user-message {
             background-color: #d1e7dd;
             text-align: right;
             margin-left: 20%;
+            border: 1px solid #c3e6cb;
         }
         .agent-message {
             background-color: #f8d7da;
             text-align: left;
             margin-right: 20%;
+            border: 1px solid #f5c6cb;
         }
     </style>
 </head>
@@ -43,41 +46,35 @@
     </div>
 
     <!-- Notification Sound -->
-    <audio id="notificationSound" src="sound.wav"></audio>
+    <audio id="notificationSound" src="sound.wav" preload="auto"></audio>
 
     <script>
         document.getElementById('sendReply').addEventListener('click', function() {
             const reply = document.getElementById('messageInput').value;
             if (reply.trim()) {
                 const chatBody = document.getElementById('chatBody');
-                const lastMessage = chatBody.lastElementChild;
-                if (!lastMessage || !lastMessage.innerHTML.includes(reply)) {
-                    chatBody.innerHTML += `<div class="message agent-message"><strong>Agent:</strong> ${reply}</div>`;
-                    chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
-                    localStorage.setItem('agentMessage', reply);
-                    localStorage.setItem('chatMessage', reply);
-                    document.getElementById('messageInput').value = '';
-                    // Notify index.html of new reply
-                    document.getElementById('notificationSound').play();
-                }
+                chatBody.innerHTML += `<div class="message agent-message"><strong>Agent:</strong> ${reply}</div>`;
+                chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
+                localStorage.setItem('agentMessage', reply);
+                document.getElementById('messageInput').value = '';
+                document.getElementById('notificationSound').play();
             }
         });
 
-        // Check for new messages from index.html every 2 seconds
-        setInterval(() => {
+        // Function to check for new messages
+        function checkForNewMessages() {
             const userMessage = localStorage.getItem('userMessage');
             if (userMessage) {
                 const chatBody = document.getElementById('chatBody');
-                const lastMessage = chatBody.lastElementChild;
-                if (!lastMessage || !lastMessage.innerHTML.includes(userMessage)) {
-                    chatBody.innerHTML += `<div class="message user-message"><strong>User:</strong> ${userMessage}</div>`;
-                    chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
-                    localStorage.removeItem('userMessage');
-                    // Play notification sound
-                    document.getElementById('notificationSound').play();
-                }
+                chatBody.innerHTML += `<div class="message user-message"><strong>User:</strong> ${userMessage}</div>`;
+                chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
+                localStorage.removeItem('userMessage');
+                document.getElementById('notificationSound').play();
             }
-        }, 2000);
+        }
+
+        // Check for new messages every 2 seconds
+        setInterval(checkForNewMessages, 2000);
     </script>
 </body>
 </html>
