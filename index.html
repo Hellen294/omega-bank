@@ -71,6 +71,7 @@
             margin-bottom: 10px;
             padding: 5px;
             border-radius: 5px;
+            word-wrap: break-word;
         }
         .user-message {
             background-color: #d1e7dd;
@@ -110,7 +111,7 @@
     </div>
 
     <div class="container">
-        <h3 class="section-title" id="services">Product & Services</h3>
+        <h3 class="section-title" id="services">Products & Services</h3>
         <div class="row">
             <!-- Service 1 -->
             <div class="col-md-4">
@@ -167,7 +168,7 @@
     <button id="openChat" class="btn btn-primary">Chat with us</button>
 
     <!-- Notification Sound -->
-    <audio id="notificationSound" src="sound.wav"></audio>
+    <audio id="notificationSound" src="sound.wav" preload="auto"></audio>
 
     <!-- Bootstrap JS and dependencies -->
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
@@ -192,7 +193,6 @@
             if (message.trim()) {
                 appendMessage('user', message);
                 localStorage.setItem('userMessage', message);
-                localStorage.setItem('chatMessage', message);
                 document.getElementById('messageInput').value = '';
             }
         });
