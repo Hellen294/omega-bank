@@ -87,29 +87,9 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
     <script>
-        // Fetch new messages from the dashboard
-        function fetchMessages() {
-            fetch('https://omega-bank.vercel.app/?action=checkMessages')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.userMessage) {
-                        appendMessage('user', data.userMessage);
-                    }
-                    if (data.agentMessage) {
-                        appendMessage('agent', data.agentMessage);
-                        // Play notification sound
-                        document.getElementById('notificationSound').play();
-                    }
-                });
-        }
-
         // Append message to chatbox
         function appendMessage(type, message) {
             const chatBody = document.getElementById('chatBody');
-            const lastMessage = chatBody.lastElementChild;
-            if (lastMessage && lastMessage.innerHTML.includes(message)) {
-                return; // Prevent appending duplicate messages
-            }
             const messageTypeClass = type === 'user' ? 'user-message' : 'agent-message';
             chatBody.innerHTML += `<div class="message ${messageTypeClass}"><strong>${type === 'user' ? 'You' : 'Agent'}:</strong> ${message}</div>`;
             chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
@@ -119,23 +99,31 @@
         document.getElementById('sendMessage').addEventListener('click', function() {
             const message = document.getElementById('messageInput').value;
             if (message.trim()) {
-                fetch('https://omega-bank.vercel.app/?action=sendMessage', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ message })
-                })
-                .then(response => response.json())
-                .then(() => {
-                    appendMessage('user', message);
-                    document.getElementById('messageInput').value = '';
-                });
+                // Save message to localStorage
+                localStorage.setItem('agentMessage', message);
+                appendMessage('user', message);
+                document.getElementById('messageInput').value = '';
             }
         });
 
+        // Load messages from localStorage
+        function loadMessages() {
+            const userMessage = localStorage.getItem('userMessage');
+            if (userMessage) {
+                appendMessage('user', userMessage);
+                localStorage.removeItem('userMessage');
+            }
+            const agentMessage = localStorage.getItem('agentMessage');
+            if (agentMessage) {
+                appendMessage('agent', agentMessage);
+                localStorage.removeItem('agentMessage');
+                // Play notification sound
+                document.getElementById('notificationSound').play();
+            }
+        }
+
         // Poll for new messages every 2 seconds
-        setInterval(fetchMessages, 2000);
+        setInterval(loadMessages, 2000);
     </script>
 </body>
 </html>
