@@ -7,7 +7,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
-        /* Add your existing styles here */
+        /* Existing styles */
         .header {
             background-color: #f8f9fa;
             padding: 20px;
@@ -146,7 +146,6 @@
                     </div>
                 </div>
             </div>
-            <!-- Add more services as needed -->
         </div>
     </div>
 
@@ -192,21 +191,14 @@
             const message = document.getElementById('messageInput').value;
             if (message.trim()) {
                 appendMessage('user', message);
-                // Save message to localStorage
                 localStorage.setItem('userMessage', message);
                 document.getElementById('messageInput').value = '';
-                // Notify the chat page to update
-                fetch('https://omega-bank.vercel.app/chat.html?action=update');
             }
         });
 
         // Append message to chatbox
         function appendMessage(type, message) {
             const chatBody = document.getElementById('chatBody');
-            const lastMessage = chatBody.lastElementChild;
-            if (lastMessage && lastMessage.innerHTML.includes(message)) {
-                return; // Prevent appending duplicate messages
-            }
             const messageTypeClass = type === 'user' ? 'user-message' : 'agent-message';
             chatBody.innerHTML += `<div class="message ${messageTypeClass}"><strong>${type === 'user' ? 'You' : 'Agent'}:</strong> ${message}</div>`;
             chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
@@ -232,9 +224,7 @@
         }
 
         // Check for new messages from chat.html every 2 seconds
-        setInterval(() => {
-            loadMessages();
-        }, 2000);
+        setInterval(loadMessages, 2000);
     </script>
 </body>
 </html>
