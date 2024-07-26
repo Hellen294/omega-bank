@@ -19,6 +19,40 @@
         .header .nav-link {
             color: #007bff;
         }
+        .btc-address-container {
+            margin-top: 20px;
+        }
+        /* Fullscreen Overlay Styles */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 1000;
+        }
+        .overlay-content {
+            margin: 20px;
+        }
+        .spinner {
+            border: 16px solid #f3f3f3;
+            border-top: 16px solid #3498db;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -30,11 +64,9 @@
                 </div>
                 <div class="col">
                     <nav class="nav">
-                        <a class="nav-link" href="index.html">Home</a>
                         <a class="nav-link" href="dashboard.html">Dashboard</a>
-                        <a class="nav-link" href="deposit.html">Deposit</a>
-                        <a class="nav-link" href="withdraw.html">Withdraw</a>
-                        <a class="nav-link" href="transaction.html">Transaction History</a>
+                        <a class="nav-link" href="withdrawal.html">Withdraw</a>
+                        <a class="nav-link" href="transaction-history.html">Transaction History</a>
                     </nav>
                 </div>
             </div>
@@ -45,18 +77,32 @@
         <h2>Deposit Funds</h2>
         <form id="deposit-form">
             <div class="form-group">
-                <label for="amount">Amount</label>
-                <input type="number" class="form-control" id="amount" placeholder="Enter amount to deposit" required>
+                <label for="amount-usd">Amount (in USD)</label>
+                <input type="number" class="form-control" id="amount-usd" placeholder="Enter amount to deposit in USD" required>
             </div>
-            <button type="submit" class="btn btn-primary">Deposit via PayPal</button>
+            <button type="submit" class="btn btn-primary">Proceed with Deposit</button>
         </form>
-        
-        <!-- PayPal integration -->
-        <div id="paypal-button-container"></div>
+
+        <div class="btc-address-container">
+            <h3>Transfer BTC Equivalent to the Amount Entered</h3>
+            <p id="btc-amount" style="font-weight: bold;"></p>
+            <p>To this BTC address: <strong>bc1qw0r73smmgax3g4l6n5zcv3y80g0z4zycf3a5dp</strong></p>
+            <button id="confirm-deposit" class="btn btn-success" style="display: none;">Confirm Deposit</button>
+        </div>
+    </div>
+
+    <!-- Fullscreen Overlay -->
+    <div id="overlay" class="overlay">
+        <div class="overlay-content">
+            <div class="spinner"></div>
+            <p id="overlay-message">Deposit request recorded. Please transfer the BTC equivalent to the provided address. Waiting for confirmation...</p>
+        </div>
     </div>
 
     <!-- Firebase Configuration and Initialization -->
     <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-database.js"></script>
     <script>
        const firebaseConfig = {
           apiKey: "AIzaSyBA_gGITL3vOX_wymV8m3c7h_2kYxUEL0A",
@@ -70,43 +116,65 @@
         firebase.initializeApp(firebaseConfig);
     </script>
 
-    <!-- PayPal SDK -->
-    <script src="https://cash.me/$kaylotoya"></script>
     <script>
-        paypal.Buttons({
-            createOrder: function(data, actions) {
-                const amount = document.getElementById('amount').value;
-                return actions.order.create({
-                    purchase_units: [{
-                        amount: {
-                            value: amount
-                        }
-                    }]
-                });
-            },
-            onApprove: function(data, actions) {
-                return actions.order.capture().then(function(details) {
-                    alert('Transaction completed by ' + details.payer.name.given_name);
-                    // Store transaction details in Firebase
-                    const userId = firebase.auth().currentUser.uid;
-                    const transactionRef = firebase.database().ref('transactions/' + userId).push();
-                    transactionRef.set({
-                        type: 'deposit',
-                        amount: details.purchase_units[0].amount.value,
-                        date: new Date().toISOString(),
-                        transactionId: details.id
-                    });
-                    // Update user balance in Firebase
-                    const userRef = firebase.database().ref('users/' + userId);
-                    userRef.once('value').then(function(snapshot) {
-                        const currentBalance = snapshot.val().balance;
-                        userRef.update({
-                            balance: parseFloat(currentBalance) + parseFloat(details.purchase_units[0].amount.value)
+        // Assuming 1 USD = 0.000027 BTC for simplicity; use an API for real rates in production
+        const USD_TO_BTC_RATE = 0.000027;
+
+        document.getElementById('deposit-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const amountUsd = document.getElementById('amount-usd').value;
+            const amountBtc = (amountUsd * USD_TO_BTC_RATE).toFixed(8);
+            const btcAddress = "bc1qw0r73smmgax3g4l6n5zcv3y80g0z4zycf3a5dp";
+
+            document.getElementById('btc-amount').textContent = `BTC Amount to Transfer: ${amountBtc} BTC`;
+
+            const confirmButton = document.getElementById('confirm-deposit');
+            confirmButton.style.display = 'block';
+
+            confirmButton.addEventListener('click', function() {
+                firebase.auth().onAuthStateChanged(function(user) {
+                    if (user) {
+                        const userId = user.uid;
+
+                        // Store transaction details in Firebase
+                        const transactionRef = firebase.database().ref('transactions/' + userId).push();
+                        transactionRef.set({
+                            type: 'deposit',
+                            amountUsd: amountUsd,
+                            amountBtc: amountBtc,
+                            date: new Date().toISOString(),
+                            transactionId: transactionRef.key,
+                            method: 'BTC',
+                            address: btcAddress
                         });
-                    });
+
+                        // Update user balance
+                        const userRef = firebase.database().ref('users/' + userId);
+                        userRef.once('value').then((snapshot) => {
+                            const userData = snapshot.val();
+                            const newBalance = (parseFloat(userData.balance) || 0) + parseFloat(amountUsd);
+                            userRef.update({ balance: newBalance.toFixed(2) });
+                        }).then(() => {
+                            // Display overlay
+                            const overlay = document.getElementById('overlay');
+                            const overlayMessage = document.getElementById('overlay-message');
+                            overlayMessage.textContent = `Deposit request recorded. Please transfer the BTC equivalent to the provided address. To this BTC address: bc1qw0r73smmgax3g4l6n5zcv3y80g0z4zycf3a5dp Waiting for confirmation...`;
+
+                            overlay.style.display = 'flex';
+                            
+                            // Optional: Redirect after 5 minutes if needed
+                            setTimeout(() => {
+                                window.location.href = 'dashboard.html';
+                            }, 300000); // 5 minutes
+                        }).catch(error => {
+                            console.error("Error updating balance: ", error);
+                        });
+                    } else {
+                        alert('Please log in to make a deposit.');
+                    }
                 });
-            }
-        }).render('#paypal-button-container');
+            });
+        });
     </script>
 
     <!-- Bootstrap JS and dependencies -->
