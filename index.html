@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -167,16 +168,18 @@
     <button id="openChat" class="btn btn-primary">Chat with us</button>
 
     <!-- Notification Sound -->
-    <audio id="notificationSound" src="sound.wav" preload="auto"></audio>
+    <audio id="notificationSound" src="sound.wav"></audio>
 
-    <!-- Socket.io -->
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
     <script>
-        const socket = io();
-
         // Show chat box
         document.getElementById('openChat').addEventListener('click', function() {
             document.getElementById('chatBox').style.display = 'block';
+            loadMessages();
         });
 
         // Hide chat box
@@ -188,7 +191,9 @@
         document.getElementById('sendMessage').addEventListener('click', function() {
             const message = document.getElementById('messageInput').value;
             if (message.trim()) {
-                socket.emit('chat message', { type: 'user', text: message });
+                appendMessage('user', message);
+                localStorage.setItem('userMessage', message);
+                localStorage.setItem('chatMessage', message);
                 document.getElementById('messageInput').value = '';
             }
         });
@@ -196,6 +201,10 @@
         // Append message to chatbox
         function appendMessage(type, message) {
             const chatBody = document.getElementById('chatBody');
+            const lastMessage = chatBody.lastElementChild;
+            if (lastMessage && lastMessage.innerHTML.includes(message)) {
+                return; // Prevent appending duplicate messages
+            }
             const messageTypeClass = type === 'user' ? 'user-message' : 'agent-message';
             chatBody.innerHTML += `<div class="message ${messageTypeClass}"><strong>${type === 'user' ? 'You' : 'Agent'}:</strong> ${message}</div>`;
             chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
@@ -204,10 +213,26 @@
             }
         }
 
-        // Receive messages
-        socket.on('chat message', function(msg) {
-            appendMessage(msg.type, msg.text);
-        });
+        // Load messages from localStorage
+        function loadMessages() {
+            const userMessage = localStorage.getItem('userMessage');
+            if (userMessage) {
+                appendMessage('user', userMessage);
+                localStorage.removeItem('userMessage');
+            }
+            const agentMessage = localStorage.getItem('agentMessage');
+            if (agentMessage) {
+                appendMessage('agent', agentMessage);
+                localStorage.removeItem('agentMessage');
+                // Play notification sound
+                document.getElementById('notificationSound').play();
+            }
+        }
+
+        // Check for new messages from chat.html every 2 seconds
+        setInterval(() => {
+            loadMessages();
+        }, 2000);
     </script>
 </body>
 </html>
