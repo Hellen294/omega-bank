@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Cards - Omega Bank</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        .header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .header img {
+            max-width: 100px;
+            height: auto;
+        }
+        .header .nav-link {
+            color: #007bff;
+        }
+        .card img {
+            max-height: 200px;
+            object-fit: cover;
+        }
+        .section-title {
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <h1>Omega Bank</h1>
+                </div>
+                <div class="col">
+                    <nav class="nav">
+                        <a class="nav-link" href="dashboard.html">Dashboard</a>
+                        <a class="nav-link" href="card-apply.html">Credit Cards</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Credit Cards</h2>
+        <p>Explore our range of credit card options:</p>
+        <div class="row">
+            <!-- Credit Card 1 -->
+            <div class="col-md-4">
+                <div class="card">
+                    <img class="card-img-top" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRDKnnG7Dgappq71bFrNUDsth_prfMF5hB85g&s" alt="Platinum Card">
+                    <div class="card-body">
+                        <h5 class="card-title">Platinum Card</h5>
+                        <p class="card-text">Enjoy premium benefits with our Platinum Card including travel insurance and exclusive rewards.</p>
+                        <a href="card-apply.html" class="btn btn-primary">Apply Now</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Credit Card 2 -->
+            <div class="col-md-4">
+                <div class="card">
+                    <img class="card-img-top" src="https://www.mygermanfinances.de/wp-content/uploads/2018/11/Advanzia-Gebuhrenfrei-Mastercard-Gold-Germany.jpg" alt="Gold Card">
+                    <div class="card-body">
+                        <h5 class="card-title">Gold Card</h5>
+                        <p class="card-text">Earn points on every purchase with our Gold Card, perfect for everyday spending.</p>
+                        <a href="card-apply.html" class="btn btn-primary">Apply Now</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Credit Card 3 -->
+            <div class="col-md-4">
+                <div class="card">
+                    <img class="card-img-top" src="https://cm-cdn.creditmantri.com/community/article/all-you-need-to-know-about-student-credit-cards.jpg" alt="Student Card">
+                    <div class="card-body">
+                        <h5 class="card-title">Student Card</h5>
+                        <p class="card-text">Designed for students, offering low interest rates and cash back on textbooks and supplies.</p>
+                        <a href="card-apply.html" class="btn btn-primary">Apply Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration and Initialization -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script>
+       const firebaseConfig = {
+          apiKey: "AIzaSyBA_gGITL3vOX_wymV8m3c7h_2kYxUEL0A",
+          authDomain: "email-5e336.firebaseapp.com",
+          projectId: "email-5e336",
+          storageBucket: "email-5e336.appspot.com",
+          messagingSenderId: "561655323170",
+          appId: "1:561655323170:web:42fcf886c34f2d5a16487b",
+          measurementId: "G-J92WNBY5RL"
+       };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+</body>
+</html>

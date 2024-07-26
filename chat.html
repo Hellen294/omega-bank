@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Administration</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        .container {
+            margin-top: 20px;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #d1e7dd;
+            text-align: right;
+            margin-left: 20%;
+        }
+        .agent-message {
+            background-color: #f8d7da;
+            text-align: left;
+            margin-right: 20%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Chat Administration</h1>
+        <div class="form-group">
+            <label for="messageInput">Reply:</label>
+            <textarea id="messageInput" class="form-control" rows="5" placeholder="Type your reply..."></textarea>
+        </div>
+        <button id="sendReply" class="btn btn-primary">Send Reply</button>
+
+        <h3>Chat History:</h3>
+        <div id="chatBody" class="chat-box-body">
+            <!-- Messages will be appended here -->
+        </div>
+    </div>
+
+    <!-- Notification Sound -->
+    <audio id="notificationSound" src="sound.wav"></audio>
+
+    <script>
+        document.getElementById('sendReply').addEventListener('click', function() {
+            const reply = document.getElementById('messageInput').value;
+            if (reply.trim()) {
+                const chatBody = document.getElementById('chatBody');
+                const lastMessage = chatBody.lastElementChild;
+                if (!lastMessage || !lastMessage.innerHTML.includes(reply)) {
+                    chatBody.innerHTML += `<div class="message agent-message"><strong>Agent:</strong> ${reply}</div>`;
+                    chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
+                    localStorage.setItem('agentMessage', reply);
+                    localStorage.setItem('chatMessage', reply);
+                    document.getElementById('messageInput').value = '';
+                    // Notify index.html of new reply
+                    document.getElementById('notificationSound').play();
+                }
+            }
+        });
+
+        // Check for new messages from index.html every 2 seconds
+        setInterval(() => {
+            const userMessage = localStorage.getItem('userMessage');
+            if (userMessage) {
+                const chatBody = document.getElementById('chatBody');
+                const lastMessage = chatBody.lastElementChild;
+                if (!lastMessage || !lastMessage.innerHTML.includes(userMessage)) {
+                    chatBody.innerHTML += `<div class="message user-message"><strong>User:</strong> ${userMessage}</div>`;
+                    chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
+                    localStorage.removeItem('userMessage');
+                    // Play notification sound
+                    document.getElementById('notificationSound').play();
+                }
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
