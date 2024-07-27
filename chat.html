@@ -3,29 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with Omega Bank</title>
+    <title>Live Chat</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
-        /* Add styles to match chat appearance */
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f2f5;
-        }
         .chat-box {
-            width: 100%;
             max-width: 600px;
-            height: 80%;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
+            margin: 0 auto;
+            margin-top: 20px;
         }
         .chat-box-header {
             background-color: #007bff;
@@ -34,13 +19,16 @@
             text-align: center;
         }
         .chat-box-body {
-            flex: 1;
+            height: 400px;
             padding: 10px;
             overflow-y: auto;
+            border: 1px solid #ccc;
+            border-top: none;
         }
         .chat-box-footer {
+            border: 1px solid #ccc;
+            border-top: none;
             padding: 10px;
-            border-top: 1px solid #ccc;
             display: flex;
         }
         .chat-box-footer input {
@@ -55,19 +43,17 @@
         .user-message {
             background-color: #d1e7dd;
             text-align: right;
-            margin-left: 20%;
         }
         .agent-message {
             background-color: #f8d7da;
             text-align: left;
-            margin-right: 20%;
         }
     </style>
 </head>
 <body>
     <div class="chat-box">
         <div class="chat-box-header">
-            <h4>Chat with Us</h4>
+            <h4>Live Chat</h4>
         </div>
         <div id="chatBody" class="chat-box-body">
             <!-- Messages will be appended here -->
@@ -81,22 +67,26 @@
     <!-- Notification Sound -->
     <audio id="notificationSound" src="sound.wav"></audio>
 
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyBA_gGITL3vOX_wymV8m3c7h_2kYxUEL0A",
-            authDomain: "email-5e336.firebaseapp.com",
-            projectId: "email-5e336",
-            storageBucket: "email-5e336.appspot.com",
-            messagingSenderId: "561655323170",
-            appId: "1:561655323170:web:42fcf886c34f2d5a16487b",
-            measurementId: "G-J92WNBY5RL"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        // Send message
+        document.getElementById('sendMessage').addEventListener('click', function() {
+            const message = document.getElementById('messageInput').value;
+            if (message.trim()) {
+                appendMessage('user', message);
+                localStorage.setItem('userMessage', message);
+                document.getElementById('messageInput').value = '';
+                // Simulate an agent reply
+                setTimeout(function() {
+                    localStorage.setItem('agentMessage', 'Thank you for your message! We will get back to you soon.');
+                    loadMessages();
+                }, 1000);
+            }
+        });
 
         // Append message to chatbox
         function appendMessage(type, message) {
@@ -104,32 +94,31 @@
             const messageTypeClass = type === 'user' ? 'user-message' : 'agent-message';
             chatBody.innerHTML += `<div class="message ${messageTypeClass}"><strong>${type === 'user' ? 'You' : 'Agent'}:</strong> ${message}</div>`;
             chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
-        }
-
-        // Send message to the dashboard
-        document.getElementById('sendMessage').addEventListener('click', function() {
-            const message = document.getElementById('messageInput').value;
-            if (message.trim()) {
-                const newMessageRef = database.ref('messages').push();
-                newMessageRef.set({
-                    type: 'agent',
-                    content: message,
-                    timestamp: Date.now()
-                });
-                document.getElementById('messageInput').value = '';
+            if (type === 'agent') {
+                document.getElementById('notificationSound').play(); // Play sound for agent replies
             }
-        });
-
-        // Load messages from Firebase
-        function loadMessages() {
-            database.ref('messages').orderByChild('timestamp').on('child_added', function(snapshot) {
-                const message = snapshot.val();
-                appendMessage(message.type, message.content);
-            });
         }
 
-        // Initial load
-        loadMessages();
+        // Load messages from localStorage
+        function loadMessages() {
+            const userMessage = localStorage.getItem('userMessage');
+            if (userMessage) {
+                appendMessage('user', userMessage);
+                localStorage.removeItem('userMessage');
+            }
+            const agentMessage = localStorage.getItem('agentMessage');
+            if (agentMessage) {
+                appendMessage('agent', agentMessage);
+                localStorage.removeItem('agentMessage');
+                // Play notification sound
+                document.getElementById('notificationSound').play();
+            }
+        }
+
+        // Load messages when the page is loaded
+        window.onload = function() {
+            loadMessages();
+        };
     </script>
 </body>
 </html>
