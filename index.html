@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to Banking Dashboard</title>
-    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
-        /* Existing styles */
         .header {
             background-color: #f8f9fa;
             padding: 20px;
@@ -175,6 +173,8 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
     <script>
+        const chatChannel = new BroadcastChannel('chat');
+
         // Show chat box
         document.getElementById('openChat').addEventListener('click', function() {
             document.getElementById('chatBox').style.display = 'block';
@@ -191,7 +191,7 @@
             const message = document.getElementById('messageInput').value;
             if (message.trim()) {
                 appendMessage('user', message);
-                localStorage.setItem('userMessage', message);
+                chatChannel.postMessage({ type: 'user', message });
                 document.getElementById('messageInput').value = '';
             }
         });
@@ -207,22 +207,56 @@
             chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
             if (type === 'agent') {
                 document.getElementById('notificationSound').play(); // Play sound for agent replies
+                showNotification('New message from agent', message);
             }
         }
 
-        // Load messages from localStorage
-        function loadMessages() {
-            const userMessage = localStorage.getItem('userMessage');
-            if (userMessage) {
-                appendMessage('user', userMessage);
-                localStorage.removeItem('userMessage');
+        // Receive message
+        chatChannel.onmessage = function(event) {
+            if (event.data.type === 'agent') {
+                appendMessage('agent', event.data.message);
             }
-            const agentMessage = localStorage.getItem('agentMessage');
-            if (agentMessage) {
-                appendMessage('agent', agentMessage);
-                localStorage.removeItem('agentMessage');
+        };
+
+        // Request notification permission
+        if (Notification.permission !== 'granted') {
+            Notification.requestPermission();
+        }
+
+        // Show browser notification
+        function showNotification(title, body) {
+            if (Notification.permission === 'granted') {
+                new Notification(title, { body });
             }
         }
+
+        // Load messages from local storage
+        function loadMessages() {
+            const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+            messages.forEach(msg => appendMessage(msg.type, msg.message));
+        }
+
+        // Save messages to local storage
+        function saveMessages(type, message) {
+            const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+            messages.push({ type, message });
+            localStorage.setItem('chatMessages', JSON.stringify(messages));
+        }
+
+        // Save user message
+        document.getElementById('sendMessage').addEventListener('click', function() {
+            const message = document.getElementById('messageInput').value;
+            if (message.trim()) {
+                saveMessages('user', message);
+            }
+        });
+
+        // Save agent message
+        chatChannel.onmessage = function(event) {
+            if (event.data.type === 'agent') {
+                saveMessages('agent', event.data.message);
+            }
+        };
     </script>
 </body>
 </html>
