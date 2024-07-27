@@ -27,60 +27,27 @@
             margin-top: 40px;
             margin-bottom: 20px;
         }
-        .chat-box {
+        #chatbox {
             position: fixed;
-            bottom: 0;
-            right: 0;
+            bottom: 20px;
+            right: 20px;
             width: 300px;
-            height: 400px;
+            background-color: white;
             border: 1px solid #ccc;
-            border-radius: 8px;
-            background-color: #fff;
+            padding: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            z-index: 1000;
             display: none;
         }
-        .chat-box-header {
-            background-color: #007bff;
-            color: #fff;
-            padding: 10px;
-            text-align: center;
-        }
-        .chat-box-body {
-            height: calc(100% - 80px);
-            padding: 10px;
-            overflow-y: auto;
-        }
-        .chat-box-footer {
-            padding: 10px;
-            border-top: 1px solid #ccc;
-            display: flex;
-        }
-        .chat-box-footer input {
-            flex: 1;
-            margin-right: 10px;
-        }
-        #openChat {
+        #chatToggle {
             position: fixed;
             bottom: 80px;
             right: 20px;
-            z-index: 1001;
-        }
-        .message {
-            margin-bottom: 10px;
-            padding: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
             border-radius: 5px;
-        }
-        .user-message {
-            background-color: #d1e7dd;
-            text-align: right;
-            margin-left: 20%;
-        }
-        .agent-message {
-            background-color: #f8d7da;
-            text-align: left;
-            margin-right: 20%;
+            padding: 10px 20px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -95,7 +62,8 @@
                     <nav class="nav">
                         <a class="nav-link" href="login.html">Login</a>
                         <a class="nav-link" href="register.html">Register</a>
-                        <a class="nav-link" href="#services">Products & Services</a>
+                        <a class="nav-link" href="#products">Products</a>
+                        <a class="nav-link" href="#services">Services</a>
                         <a class="nav-link" href="#about">About Us</a>
                         <a class="nav-link" href="#contact">Contact Us</a>
                     </nav>
@@ -110,128 +78,96 @@
     </div>
 
     <div class="container">
-        <h3 class="section-title" id="services">Product & Services</h3>
-        <div class="row">
-            <!-- Service 1 -->
-            <div class="col-md-4">
-                <div class="card">
-                    <img class="card-img-top" src="https://thumbs.dreamstime.com/b/hand-giving-money-bag-to-another-hand-payment-credit-loan-banking-poster-vector-illustration-blue-background-cartoon-flat-71582676.jpg" alt="Loans">
-                    <div class="card-body">
-                        <h5 class="card-title">Loans</h5>
-                        <p class="card-text">Offering various types of personal loans including home improvement, debt consolidation, and medical expenses.</p>
-                        <a href="#" class="btn btn-primary">Learn More</a>
-                    </div>
-                </div>
-            </div>
-            <!-- Service 2 -->
-            <div class="col-md-4">
-                <div class="card">
-                    <img class="card-img-top" src="https://www.visa.co.in/dam/VCOM/regional/ap/india/global-elements/images/in-visa-gold-card-498x280.png" alt="Credit Cards">
-                    <div class="card-body">
-                        <h5 class="card-title">Credit Cards</h5>
-                        <p class="card-text">A variety of credit card options with different rewards and benefits tailored to various spending habits.</p>
-                        <a href="#" class="btn btn-primary">Learn More</a>
-                    </div>
-                </div>
-            </div>
-            <!-- Service 3 -->
-            <div class="col-md-4">
-                <div class="card">
-                    <img class="card-img-top" src="https://media.istockphoto.com/id/1409106095/vector/long-term-investment-investors-keep-their-savings-on-time-vector-illustration.jpg?s=612x612&w=0&k=20&c=Z3Y3Pr-XJQwJXfEy7aD12CJiQ4siPa-xRyX_DtDOb4I=" alt="Investment Services">
-                    <div class="card-body">
-                        <h5 class="card-title">Investment Services</h5>
-                        <p class="card-text">Helping customers grow their wealth through investment opportunities such as stocks, bonds, and mutual funds.</p>
-                        <a href="#" class="btn btn-primary">Learn More</a>
-                    </div>
-                </div>
-            </div>
-            <!-- Add more services as needed -->
+        <h3 class="section-title" id="products">Products</h3>
+        <!-- Product cards here -->
+
+        <h3 class="section-title" id="services">Services</h3>
+        <!-- Service cards here -->
+    </div>
+
+    <button id="chatToggle">Chat with Us</button>
+
+    <div id="chatbox">
+        <div id="userForm">
+            <h5>Start Chat</h5>
+            <input type="text" id="userName" placeholder="Enter your name" class="form-control mb-2">
+            <input type="email" id="userEmail" placeholder="Enter your email" class="form-control mb-2">
+            <button id="startChat" class="btn btn-primary">Start Chat</button>
+        </div>
+        <div id="chatWindow" class="hidden">
+            <div id="messages" style="height: 200px; overflow-y: scroll; border: 1px solid #ccc; margin-bottom: 10px; padding: 5px;"></div>
+            <input type="text" id="messageInput" placeholder="Type your message" class="form-control mb-2">
+            <button id="sendMessage" class="btn btn-success">Send</button>
         </div>
     </div>
 
-    <!-- Chat Box -->
-    <div id="chatBox" class="chat-box">
-        <div class="chat-box-header">
-            <h4>Live Chat</h4>
-            <button id="closeChat" class="btn btn-sm btn-light float-right">X</button>
-        </div>
-        <div id="chatBody" class="chat-box-body">
-            <!-- Messages will be appended here -->
-        </div>
-        <div class="chat-box-footer">
-            <input id="messageInput" type="text" placeholder="Type a message...">
-            <button id="sendMessage" class="btn btn-primary">Send</button>
-        </div>
-    </div>
-
-    <button id="openChat" class="btn btn-primary">Chat with us</button>
-
-    <!-- Notification Sound -->
     <audio id="notificationSound" src="sound.wav"></audio>
+
+    <!-- Firebase Configuration and Initialization -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-database.js"></script>
+    <script>
+       const firebaseConfig = {
+          apiKey: "AIzaSyBA_gGITL3vOX_wymV8m3c7h_2kYxUEL0A",
+          authDomain: "email-5e336.firebaseapp.com",
+          databaseURL: "https://email-5e336-default-rtdb.firebaseio.com",
+          projectId: "email-5e336",
+          storageBucket: "email-5e336.appspot.com",
+          messagingSenderId: "561655323170",
+          appId: "1:561655323170:web:42fcf886c34f2d5a16487b",
+          measurementId: "G-J92WNBY5RL"
+       };
+       firebase.initializeApp(firebaseConfig);
+
+       const db = firebase.database();
+
+       document.getElementById('chatToggle').addEventListener('click', function() {
+           const chatbox = document.getElementById('chatbox');
+           if (chatbox.style.display === 'none' || chatbox.style.display === '') {
+               chatbox.style.display = 'block';
+           } else {
+               chatbox.style.display = 'none';
+           }
+       });
+
+       document.getElementById('startChat').addEventListener('click', function() {
+           const userName = document.getElementById('userName').value;
+           const userEmail = document.getElementById('userEmail').value;
+
+           if (userName && userEmail) {
+               document.getElementById('userForm').classList.add('hidden');
+               document.getElementById('chatWindow').classList.remove('hidden');
+           }
+       });
+
+       document.getElementById('sendMessage').addEventListener('click', function() {
+           const message = document.getElementById('messageInput').value;
+           if (message) {
+               const messagesRef = db.ref('chats');
+               messagesRef.push({
+                   name: document.getElementById('userName').value,
+                   email: document.getElementById('userEmail').value,
+                   message: message,
+                   timestamp: Date.now()
+               });
+               document.getElementById('messageInput').value = '';
+           }
+       });
+
+       const messagesRef = db.ref('chats');
+       messagesRef.on('child_added', function(snapshot) {
+           const messageData = snapshot.val();
+           const messageElement = document.createElement('div');
+           messageElement.textContent = `${messageData.name}: ${messageData.message}`;
+           document.getElementById('messages').appendChild(messageElement);
+           document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+           document.getElementById('notificationSound').play();
+       });
+    </script>
 
     <!-- Bootstrap JS and dependencies -->
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-
-    <script>
-        // Show chat box
-        document.getElementById('openChat').addEventListener('click', function() {
-            document.getElementById('chatBox').style.display = 'block';
-            loadMessages();
-        });
-
-        // Hide chat box
-        document.getElementById('closeChat').addEventListener('click', function() {
-            document.getElementById('chatBox').style.display = 'none';
-        });
-
-        // Send message
-        document.getElementById('sendMessage').addEventListener('click', function() {
-            const message = document.getElementById('messageInput').value;
-            if (message.trim()) {
-                appendMessage('user', message);
-                localStorage.setItem('userMessage', message);
-                localStorage.setItem('chatMessage', message);
-                document.getElementById('messageInput').value = '';
-            }
-        });
-
-        // Append message to chatbox
-        function appendMessage(type, message) {
-            const chatBody = document.getElementById('chatBody');
-            const lastMessage = chatBody.lastElementChild;
-            if (lastMessage && lastMessage.innerHTML.includes(message)) {
-                return; // Prevent appending duplicate messages
-            }
-            const messageTypeClass = type === 'user' ? 'user-message' : 'agent-message';
-            chatBody.innerHTML += `<div class="message ${messageTypeClass}"><strong>${type === 'user' ? 'You' : 'Agent'}:</strong> ${message}</div>`;
-            chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
-            if (type === 'agent') {
-                document.getElementById('notificationSound').play(); // Play sound for agent replies
-            }
-        }
-
-        // Load messages from localStorage
-        function loadMessages() {
-            const userMessage = localStorage.getItem('userMessage');
-            if (userMessage) {
-                appendMessage('user', userMessage);
-                localStorage.removeItem('userMessage');
-            }
-            const agentMessage = localStorage.getItem('agentMessage');
-            if (agentMessage) {
-                appendMessage('agent', agentMessage);
-                localStorage.removeItem('agentMessage');
-                // Play notification sound
-                document.getElementById('notificationSound').play();
-            }
-        }
-
-        // Check for new messages from chat.html every 2 seconds
-        setInterval(() => {
-            loadMessages();
-        }, 2000);
-    </script>
 </body>
 </html>
