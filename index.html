@@ -98,7 +98,6 @@
                         <a class="nav-link" href="#services">Products & Services</a>
                         <a class="nav-link" href="#about">About Us</a>
                         <a class="nav-link" href="#contact">Contact Us</a>
-                        <a class="nav-link" href="chat.html">Chat Page</a> <!-- Link to Chat Page -->
                     </nav>
                 </div>
             </div>
@@ -202,8 +201,8 @@
             const messageTypeClass = type === 'user' ? 'user-message' : 'agent-message';
             chatBody.innerHTML += `<div class="message ${messageTypeClass}"><strong>${type === 'user' ? 'You' : 'Agent'}:</strong> ${message}</div>`;
             chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
-            if (type === 'agent') {
-                document.getElementById('notificationSound').play(); // Play sound for agent replies
+            if (type === 'user') {
+                document.getElementById('notificationSound').play(); // Play sound for user messages
             }
         }
 
@@ -218,16 +217,8 @@
             if (agentMessage) {
                 appendMessage('agent', agentMessage);
                 localStorage.removeItem('agentMessage');
-                // Play notification sound
-                document.getElementById('notificationSound').play();
             }
         }
-
-        // For demonstration purposes, automatically send an agent reply after 2 seconds
-        setTimeout(function() {
-            localStorage.setItem('agentMessage', 'Hello, how can I help you today?');
-            loadMessages();
-        }, 2000);
     </script>
 </body>
 </html>
