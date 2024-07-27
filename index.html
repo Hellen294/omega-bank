@@ -82,6 +82,19 @@
             text-align: left;
             margin-right: 20%;
         }
+        .chat-form {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+            padding: 10px;
+        }
+        .chat-form input, .chat-form button {
+            margin-bottom: 10px;
+        }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -150,16 +163,24 @@
 
     <!-- Chat Box -->
     <div id="chatBox" class="chat-box">
-        <div class="chat-box-header">
-            <h4>Live Chat</h4>
-            <button id="closeChat" class="btn btn-sm btn-light float-right">X</button>
+        <div id="chatForm" class="chat-form">
+            <h4>Please enter your details:</h4>
+            <input id="nameInput" type="text" class="form-control" placeholder="Your Name">
+            <input id="emailInput" type="email" class="form-control" placeholder="Your Email">
+            <button id="startChat" class="btn btn-primary">Start Chat</button>
         </div>
-        <div id="chatBody" class="chat-box-body">
-            <!-- Messages will be appended here -->
-        </div>
-        <div class="chat-box-footer">
-            <input id="messageInput" type="text" placeholder="Type a message...">
-            <button id="sendMessage" class="btn btn-primary">Send</button>
+        <div id="chatContent" class="hidden">
+            <div class="chat-box-header">
+                <h4>Live Chat</h4>
+                <button id="closeChat" class="btn btn-sm btn-light float-right">X</button>
+            </div>
+            <div id="chatBody" class="chat-box-body">
+                <!-- Messages will be appended here -->
+            </div>
+            <div class="chat-box-footer">
+                <input id="messageInput" type="text" class="form-control" placeholder="Type a message...">
+                <button id="sendMessage" class="btn btn-primary">Send</button>
+            </div>
         </div>
     </div>
 
@@ -173,16 +194,16 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
     <script>
         // TODO: Replace the following with your app's Firebase project configuration
-       const firebaseConfig = {
-          apiKey: "AIzaSyBA_gGITL3vOX_wymV8m3c7h_2kYxUEL0A",
-          authDomain: "email-5e336.firebaseapp.com",
-          projectId: "email-5e336",
-          storageBucket: "email-5e336.appspot.com",
-          messagingSenderId: "561655323170",
-          appId: "1:561655323170:web:42fcf886c34f2d5a16487b",
-          measurementId: "G-J92WNBY5RL"
-       };
-        
+        const firebaseConfig = {
+            apiKey: "AIzaSyBA_gGITL3vOX_wymV8m3c7h_2kYxUEL0A",
+            authDomain: "email-5e336.firebaseapp.com",
+            projectId: "email-5e336",
+            storageBucket: "email-5e336.appspot.com",
+            messagingSenderId: "561655323170",
+            appId: "1:561655323170:web:42fcf886c34f2d5a16487b",
+            measurementId: "G-J92WNBY5RL"
+        };
+
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
@@ -190,12 +211,26 @@
         // Show chat box
         document.getElementById('openChat').addEventListener('click', function() {
             document.getElementById('chatBox').style.display = 'block';
-            loadMessages();
         });
 
         // Hide chat box
         document.getElementById('closeChat').addEventListener('click', function() {
             document.getElementById('chatBox').style.display = 'none';
+        });
+
+        // Start chat
+        document.getElementById('startChat').addEventListener('click', function() {
+            const name = document.getElementById('nameInput').value.trim();
+            const email = document.getElementById('emailInput').value.trim();
+            if (name && email) {
+                document.getElementById('chatForm').classList.add('hidden');
+                document.getElementById('chatContent').classList.remove('hidden');
+                // Optionally, store the user information in the chat or use it as needed
+                console.log('User details:', { name, email });
+                loadMessages(); // Load messages after starting chat
+            } else {
+                alert('Please enter both name and email.');
+            }
         });
 
         // Send message
@@ -229,9 +264,6 @@
                 appendMessage(messageData.type, messageData.message);
             });
         }
-
-        // Load messages initially
-        loadMessages();
     </script>
 </body>
 </html>
