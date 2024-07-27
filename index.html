@@ -191,24 +191,24 @@
 
         // Show chat box
         document.getElementById('openChat').addEventListener('click', function() {
-            document.getElementById('chatBox').style.display = 'block';
+            console.log('Chat button clicked'); // Debugging
+            const chatBox = document.getElementById('chatBox');
+            chatBox.style.display = 'block';
+            chatBox.style.transition = 'all 0.5s'; // Smooth transition
         });
 
         // Hide chat box
         document.getElementById('closeChat').addEventListener('click', function() {
+            console.log('Close button clicked'); // Debugging
             document.getElementById('chatBox').style.display = 'none';
         });
 
         // Send message
         document.getElementById('sendMessage').addEventListener('click', function() {
             const message = document.getElementById('messageInput').value;
-            const name = document.getElementById('userName').value || 'Anonymous';
-            const email = document.getElementById('userEmail').value || 'No email';
             if (message.trim()) {
-                database.ref('messages').push({
-                    type: 'user',
-                    text: `${name} (${email}): ${message}`
-                });
+                appendMessage('user', message);
+                database.ref('messages').push({ type: 'user', text: message });
                 document.getElementById('messageInput').value = '';
             }
         });
@@ -216,6 +216,10 @@
         // Append message to chatbox
         function appendMessage(type, message) {
             const chatBody = document.getElementById('chatBody');
+            const lastMessage = chatBody.lastElementChild;
+            if (lastMessage && lastMessage.innerHTML.includes(message)) {
+                return; // Prevent appending duplicate messages
+            }
             const messageTypeClass = type === 'user' ? 'user-message' : 'agent-message';
             chatBody.innerHTML += `<div class="message ${messageTypeClass}"><strong>${type === 'user' ? 'You' : 'Agent'}:</strong> ${message}</div>`;
             chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
@@ -227,11 +231,8 @@
         // Listen for new messages
         database.ref('messages').on('child_added', function(snapshot) {
             const message = snapshot.val();
-            const chatBody = document.getElementById('chatBody');
-            const messageTypeClass = message.type === 'user' ? 'user-message' : 'agent-message';
-            chatBody.innerHTML += `<div class="message ${messageTypeClass}"><strong>${message.type === 'user' ? 'You' : 'Agent'}:</strong> ${message.text}</div>`;
-            chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
-            if (message.type === 'user') {
+            appendMessage(message.type, message.text);
+            if (message.type === 'agent') {
                 document.getElementById('notificationSound').play();
             }
         });
