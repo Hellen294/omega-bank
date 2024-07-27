@@ -3,29 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Banking Dashboard</title>
+    <title>Omega Bank Dashboard</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
-        .header {
-            background-color: #f8f9fa;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .header img {
-            max-width: 100px;
-            height: auto;
-        }
-        .header .nav-link {
-            color: #007bff;
-        }
-        .card img {
-            max-height: 200px;
-            object-fit: cover;
-        }
-        .section-title {
-            margin-top: 40px;
-            margin-bottom: 20px;
-        }
         .chat-box {
             position: fixed;
             bottom: 0;
@@ -82,27 +62,10 @@
             margin-right: 20%;
         }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
 </head>
 <body>
-    <div class="header">
-        <div class="container">
-            <div class="row">
-                <div class="col">
-                    <h1>Omega Bank</h1>
-                </div>
-                <div class="col">
-                    <nav class="nav">
-                        <a class="nav-link" href="login.html">Login</a>
-                        <a class="nav-link" href="register.html">Register</a>
-                        <a class="nav-link" href="#services">Products & Services</a>
-                        <a class="nav-link" href="#about">About Us</a>
-                        <a class="nav-link" href="#contact">Contact Us</a>
-                    </nav>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="container">
         <h2>Welcome to Banking Dashboard</h2>
         <p>Explore our products and services below:</p>
@@ -146,15 +109,12 @@
             </div>
         </div>
     </div>
-
-    <!-- Chat Box -->
     <div id="chatBox" class="chat-box">
         <div class="chat-box-header">
             <h4>Live Chat</h4>
             <button id="closeChat" class="btn btn-sm btn-light float-right">X</button>
         </div>
         <div id="chatBody" class="chat-box-body">
-            <!-- Messages will be appended here -->
         </div>
         <div class="chat-box-footer">
             <input id="messageInput" type="text" placeholder="Type a message...">
@@ -164,39 +124,53 @@
 
     <button id="openChat" class="btn btn-primary">Chat with us</button>
 
-    <!-- Notification Sound -->
-    <audio id="notificationSound" src="sound.wav"></audio>
-
-    <!-- Bootstrap JS and dependencies -->
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-
     <script>
-        const chatChannel = new BroadcastChannel('chat');
+       const firebaseConfig = {
+          apiKey: "AIzaSyBA_gGITL3vOX_wymV8m3c7h_2kYxUEL0A",
+          authDomain: "email-5e336.firebaseapp.com",
+          projectId: "email-5e336",
+          storageBucket: "email-5e336.appspot.com",
+          messagingSenderId: "561655323170",
+          appId: "1:561655323170:web:42fcf886c34f2d5a16487b",
+          measurementId: "G-J92WNBY5RL"
+       };
 
-        // Show chat box
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const chatRef = db.collection('chatMessages');
+
         document.getElementById('openChat').addEventListener('click', function() {
             document.getElementById('chatBox').style.display = 'block';
             loadMessages();
         });
 
-        // Hide chat box
         document.getElementById('closeChat').addEventListener('click', function() {
             document.getElementById('chatBox').style.display = 'none';
         });
 
-        // Send message
         document.getElementById('sendMessage').addEventListener('click', function() {
             const message = document.getElementById('messageInput').value;
             if (message.trim()) {
-                appendMessage('user', message);
-                chatChannel.postMessage({ type: 'user', message });
+                chatRef.add({
+                    type: 'user',
+                    message: message,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
                 document.getElementById('messageInput').value = '';
             }
         });
 
-        // Append message to chatbox
+        function loadMessages() {
+            chatRef.orderBy('timestamp').onSnapshot(snapshot => {
+                document.getElementById('chatBody').innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    appendMessage(data.type, data.message);
+                });
+            });
+        }
+
         function appendMessage(type, message) {
             const chatBody = document.getElementById('chatBody');
             const messageTypeClass = type === 'user' ? 'user-message' : 'agent-message';
@@ -204,59 +178,8 @@
             messageElement.classList.add('message', messageTypeClass);
             messageElement.innerHTML = `<strong>${type === 'user' ? 'You' : 'Agent'}:</strong> ${message}`;
             chatBody.appendChild(messageElement);
-            chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
-            if (type === 'agent') {
-                document.getElementById('notificationSound').play(); // Play sound for agent replies
-                showNotification('New message from agent', message);
-            }
+            chatBody.scrollTop = chatBody.scrollHeight;
         }
-
-        // Receive message
-        chatChannel.onmessage = function(event) {
-            if (event.data.type === 'agent') {
-                appendMessage('agent', event.data.message);
-            }
-        };
-
-        // Request notification permission
-        if (Notification.permission !== 'granted') {
-            Notification.requestPermission();
-        }
-
-        // Show browser notification
-        function showNotification(title, body) {
-            if (Notification.permission === 'granted') {
-                new Notification(title, { body });
-            }
-        }
-
-        // Load messages from local storage
-        function loadMessages() {
-            const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
-            messages.forEach(msg => appendMessage(msg.type, msg.message));
-        }
-
-        // Save messages to local storage
-        function saveMessages(type, message) {
-            const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
-            messages.push({ type, message });
-            localStorage.setItem('chatMessages', JSON.stringify(messages));
-        }
-
-        // Save user message
-        document.getElementById('sendMessage').addEventListener('click', function() {
-            const message = document.getElementById('messageInput').value;
-            if (message.trim()) {
-                saveMessages('user', message);
-            }
-        });
-
-        // Save agent message
-        chatChannel.onmessage = function(event) {
-            if (event.data.type === 'agent') {
-                saveMessages('agent', event.data.message);
-            }
-        };
     </script>
 </body>
 </html>
