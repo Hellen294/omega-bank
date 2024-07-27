@@ -51,11 +51,14 @@
             height: calc(100% - 80px);
             padding: 10px;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
         .chat-box-footer {
             padding: 10px;
             border-top: 1px solid #ccc;
             display: flex;
+            align-items: center;
         }
         .chat-box-footer input {
             flex: 1;
@@ -75,12 +78,12 @@
         .user-message {
             background-color: #d1e7dd;
             text-align: right;
-            margin-left: 20%;
+            align-self: flex-end;
         }
         .agent-message {
             background-color: #f8d7da;
             text-align: left;
-            margin-right: 20%;
+            align-self: flex-start;
         }
         .chat-form {
             display: flex;
