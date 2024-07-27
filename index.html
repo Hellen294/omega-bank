@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to Banking Dashboard</title>
-    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
         /* Existing styles */
@@ -83,26 +82,6 @@
             text-align: left;
             margin-right: 20%;
         }
-        #userInfoModal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1100;
-            align-items: center;
-            justify-content: center;
-        }
-        #userInfoModal .modal-content {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -169,16 +148,6 @@
         </div>
     </div>
 
-    <!-- User Info Modal -->
-    <div id="userInfoModal" class="d-flex">
-        <div class="modal-content">
-            <h4>Enter Your Details</h4>
-            <input type="text" id="userName" placeholder="Name" class="form-control mb-2">
-            <input type="email" id="userEmail" placeholder="Email" class="form-control mb-2">
-            <button id="submitUserInfo" class="btn btn-primary">Submit</button>
-        </div>
-    </div>
-
     <!-- Chat Box -->
     <div id="chatBox" class="chat-box">
         <div class="chat-box-header">
@@ -196,12 +165,14 @@
 
     <button id="openChat" class="btn btn-primary">Chat with us</button>
 
-    <!-- Firebase Configuration -->
-    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-auth.js"></script>
+    <!-- Notification Sound -->
+    <audio id="notificationSound" src="sound.wav"></audio>
+
+    <!-- Firebase Config -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
     <script>
-        // Firebase configuration
+        // TODO: Replace the following with your app's Firebase project configuration
        const firebaseConfig = {
           apiKey: "AIzaSyBA_gGITL3vOX_wymV8m3c7h_2kYxUEL0A",
           authDomain: "email-5e336.firebaseapp.com",
@@ -211,34 +182,18 @@
           appId: "1:561655323170:web:42fcf886c34f2d5a16487b",
           measurementId: "G-J92WNBY5RL"
        };
-
+        
         // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-        let userName = '';
-        let userEmail = '';
-
-        // Show user info modal
+        // Show chat box
         document.getElementById('openChat').addEventListener('click', function() {
-            document.getElementById('userInfoModal').style.display = 'flex';
+            document.getElementById('chatBox').style.display = 'block';
+            loadMessages();
         });
 
-        // Submit user info
-        document.getElementById('submitUserInfo').addEventListener('click', function() {
-            const nameInput = document.getElementById('userName').value;
-            const emailInput = document.getElementById('userEmail').value;
-
-            if (nameInput.trim() && emailInput.trim()) {
-                userName = nameInput;
-                userEmail = emailInput;
-                document.getElementById('userInfoModal').style.display = 'none';
-                document.getElementById('chatBox').style.display = 'block';
-            }
-        });
-
-        // Close chat box
+        // Hide chat box
         document.getElementById('closeChat').addEventListener('click', function() {
             document.getElementById('chatBox').style.display = 'none';
         });
@@ -247,33 +202,36 @@
         document.getElementById('sendMessage').addEventListener('click', function() {
             const message = document.getElementById('messageInput').value;
             if (message.trim()) {
-                db.collection('messages').add({
+                const newMessageKey = database.ref().child('messages').push().key;
+                database.ref('messages/' + newMessageKey).set({
                     type: 'user',
-                    message: message,
-                    name: userName,
-                    email: userEmail,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    message: message
                 });
                 document.getElementById('messageInput').value = '';
             }
         });
 
         // Append message to chatbox
-        function appendMessage(type, message, name) {
+        function appendMessage(type, message) {
             const chatBody = document.getElementById('chatBody');
             const messageTypeClass = type === 'user' ? 'user-message' : 'agent-message';
-            chatBody.innerHTML += `<div class="message ${messageTypeClass}"><strong>${name}:</strong> ${message}</div>`;
-            chatBody.scrollTop = chatBody.scrollHeight;
+            chatBody.innerHTML += `<div class="message ${messageTypeClass}"><strong>${type === 'user' ? 'You' : 'Agent'}:</strong> ${message}</div>`;
+            chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
+            if (type === 'agent') {
+                document.getElementById('notificationSound').play(); // Play sound for agent replies
+            }
         }
 
-        // Load messages from Firestore
-        db.collection('messages').orderBy('timestamp').onSnapshot(snapshot => {
-            document.getElementById('chatBody').innerHTML = '';
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                appendMessage(data.type, data.message, data.name || (data.type === 'user' ? 'You' : 'Agent'));
+        // Load messages from Firebase
+        function loadMessages() {
+            database.ref('messages').on('child_added', function(snapshot) {
+                const messageData = snapshot.val();
+                appendMessage(messageData.type, messageData.message);
             });
-        });
+        }
+
+        // Load messages initially
+        loadMessages();
     </script>
 </body>
 </html>
