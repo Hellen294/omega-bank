@@ -223,11 +223,11 @@
             }
         }
 
-        // Simulate agent response
+        // For demonstration purposes, automatically send an agent reply after 2 seconds
         setTimeout(function() {
-            localStorage.setItem('agentMessage', 'Hello! How can I assist you today?');
+            localStorage.setItem('agentMessage', 'Hello, how can I help you today?');
             loadMessages();
-        }, 3000); // Simulate delay of 3 seconds for agent response
+        }, 2000);
     </script>
 </body>
 </html>
