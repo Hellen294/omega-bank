@@ -1,23 +1,25 @@
-// server.js
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 io.on('connection', (socket) => {
-    console.log('A user connected');
+    console.log('A user connected:', socket.id);
 
-    socket.on('chat message', (msg) => {
-        io.emit('chat message', msg); // Broadcast the message to all connected clients
+    socket.on('message', (data) => {
+        console.log('Message received:', data);
+        // Broadcast message to all connected clients
+        io.emit('message', data);
     });
 
     socket.on('disconnect', () => {
-        console.log('User disconnected');
+        console.log('User disconnected:', socket.id);
     });
 });
 
