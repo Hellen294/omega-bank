@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Banking Dashboard</title>
+    <title>Banking Dashboard - Chat User</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
@@ -12,20 +12,11 @@
             padding: 20px;
             margin-bottom: 20px;
         }
-        .header img {
-            max-width: 100px;
-            height: auto;
-        }
         .header .nav-link {
             color: #007bff;
         }
-        .card img {
-            max-height: 200px;
-            object-fit: cover;
-        }
-        .section-title {
-            margin-top: 40px;
-            margin-bottom: 20px;
+        .container {
+            margin-top: 50px;
         }
         .chat-box {
             position: fixed;
@@ -38,8 +29,6 @@
             background-color: #fff;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             overflow: hidden;
-            z-index: 1000;
-            display: none;
         }
         .chat-box-header {
             background-color: #007bff;
@@ -60,12 +49,6 @@
         .chat-box-footer input {
             flex: 1;
             margin-right: 10px;
-        }
-        #openChat {
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            z-index: 1001;
         }
         .message {
             margin-bottom: 10px;
@@ -105,51 +88,22 @@
     </div>
 
     <div class="container">
-        <h2>Welcome to Banking Dashboard</h2>
-        <p>Explore our products and services below:</p>
-    </div>
-
-    <div class="container">
-        <h3 class="section-title" id="services">Product & Services</h3>
-        <div class="row">
-            <!-- Service 1 -->
-            <div class="col-md-4">
-                <div class="card">
-                    <img class="card-img-top" src="https://thumbs.dreamstime.com/b/hand-giving-money-bag-to-another-hand-payment-credit-loan-banking-poster-vector-illustration-blue-background-cartoon-flat-71582676.jpg" alt="Loans">
-                    <div class="card-body">
-                        <h5 class="card-title">Loans</h5>
-                        <p class="card-text">Offering various types of personal loans including home improvement, debt consolidation, and medical expenses.</p>
-                        <a href="#" class="btn btn-primary">Learn More</a>
-                    </div>
-                </div>
+        <h2>Chat with Us</h2>
+        <form id="userForm">
+            <div class="form-group">
+                <label for="userName">Name:</label>
+                <input type="text" class="form-control" id="userName" placeholder="Enter your name" required>
             </div>
-            <!-- Service 2 -->
-            <div class="col-md-4">
-                <div class="card">
-                    <img class="card-img-top" src="https://www.visa.co.in/dam/VCOM/regional/ap/india/global-elements/images/in-visa-gold-card-498x280.png" alt="Credit Cards">
-                    <div class="card-body">
-                        <h5 class="card-title">Credit Cards</h5>
-                        <p class="card-text">A variety of credit card options with different rewards and benefits tailored to various spending habits.</p>
-                        <a href="#" class="btn btn-primary">Learn More</a>
-                    </div>
-                </div>
+            <div class="form-group">
+                <label for="userEmail">Email:</label>
+                <input type="email" class="form-control" id="userEmail" placeholder="Enter your email" required>
             </div>
-            <!-- Service 3 -->
-            <div class="col-md-4">
-                <div class="card">
-                    <img class="card-img-top" src="https://media.istockphoto.com/id/1409106095/vector/long-term-investment-investors-keep-their-savings-on-time-vector-illustration.jpg?s=612x612&w=0&k=20&c=Z3Y3Pr-XJQwJXfEy7aD12CJiQ4siPa-xRyX_DtDOb4I=" alt="Investment Services">
-                    <div class="card-body">
-                        <h5 class="card-title">Investment Services</h5>
-                        <p class="card-text">Helping customers grow their wealth through investment opportunities such as stocks, bonds, and mutual funds.</p>
-                        <a href="#" class="btn btn-primary">Learn More</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+            <button type="submit" class="btn btn-primary">Start Chat</button>
+        </form>
     </div>
 
     <!-- Chat Box -->
-    <div id="chatBox" class="chat-box">
+    <div id="chatBox" class="chat-box" style="display:none;">
         <div class="chat-box-header">
             <h4>Live Chat</h4>
             <button id="closeChat" class="btn btn-sm btn-light float-right">X</button>
@@ -163,10 +117,7 @@
         </div>
     </div>
 
-    <button id="openChat" class="btn btn-primary">Chat with us</button>
-
-    <!-- Notification Sound -->
-    <audio id="notificationSound" src="sound.wav"></audio>
+    <button id="openChat" class="btn btn-primary" style="display:none;">Chat with us</button>
 
     <!-- Bootstrap JS and dependencies -->
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
@@ -174,18 +125,31 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
     <script>
-        // Show chat box
-        document.getElementById('openChat').addEventListener('click', function() {
-            document.getElementById('chatBox').style.display = 'block';
-            loadMessages();
+        const CHAT_UPDATE_INTERVAL = 3000; // 3 seconds
+
+        document.getElementById('userForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('userName').value;
+            const email = document.getElementById('userEmail').value;
+
+            if (name && email) {
+                localStorage.setItem('userName', name);
+                localStorage.setItem('userEmail', email);
+                document.getElementById('chatBox').style.display = 'block';
+                document.getElementById('openChat').style.display = 'none';
+                loadMessages();
+                startChatPolling();
+            }
         });
 
-        // Hide chat box
+        document.getElementById('openChat').addEventListener('click', function() {
+            document.getElementById('chatBox').style.display = 'block';
+        });
+
         document.getElementById('closeChat').addEventListener('click', function() {
             document.getElementById('chatBox').style.display = 'none';
         });
 
-        // Send message
         document.getElementById('sendMessage').addEventListener('click', function() {
             const message = document.getElementById('messageInput').value;
             if (message.trim()) {
@@ -195,18 +159,13 @@
             }
         });
 
-        // Append message to chatbox
         function appendMessage(type, message) {
             const chatBody = document.getElementById('chatBody');
             const messageTypeClass = type === 'user' ? 'user-message' : 'agent-message';
             chatBody.innerHTML += `<div class="message ${messageTypeClass}"><strong>${type === 'user' ? 'You' : 'Agent'}:</strong> ${message}</div>`;
-            chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
-            if (type === 'user') {
-                document.getElementById('notificationSound').play(); // Play sound for user messages
-            }
+            chatBody.scrollTop = chatBody.scrollHeight;
         }
 
-        // Load messages from localStorage
         function loadMessages() {
             const userMessage = localStorage.getItem('userMessage');
             if (userMessage) {
@@ -218,6 +177,10 @@
                 appendMessage('agent', agentMessage);
                 localStorage.removeItem('agentMessage');
             }
+        }
+
+        function startChatPolling() {
+            setInterval(loadMessages, CHAT_UPDATE_INTERVAL);
         }
     </script>
 </body>
