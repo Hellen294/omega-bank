@@ -3,14 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Chat - Agent</title>
+    <title>Banking Dashboard - Chat Agent</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
+        .header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .header .nav-link {
+            color: #007bff;
+        }
+        .container {
+            margin-top: 50px;
+        }
         .chat-box {
-            max-width: 600px;
-            margin: 0 auto;
-            margin-top: 20px;
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 300px;
+            height: 400px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
         .chat-box-header {
             background-color: #007bff;
@@ -19,16 +37,13 @@
             text-align: center;
         }
         .chat-box-body {
-            height: 400px;
+            height: calc(100% - 80px);
             padding: 10px;
             overflow-y: auto;
-            border: 1px solid #ccc;
-            border-top: none;
         }
         .chat-box-footer {
-            border: 1px solid #ccc;
-            border-top: none;
             padding: 10px;
+            border-top: 1px solid #ccc;
             display: flex;
         }
         .chat-box-footer input {
@@ -43,29 +58,53 @@
         .user-message {
             background-color: #d1e7dd;
             text-align: right;
+            margin-left: 20%;
         }
         .agent-message {
             background-color: #f8d7da;
             text-align: left;
+            margin-right: 20%;
         }
     </style>
 </head>
 <body>
-    <div class="chat-box">
-        <div class="chat-box-header">
-            <h4>Live Chat - Agent</h4>
-        </div>
-        <div id="chatBody" class="chat-box-body">
-            <!-- Messages will be appended here -->
-        </div>
-        <div class="chat-box-footer">
-            <input id="messageInput" type="text" placeholder="Type a message...">
-            <button id="sendMessage" class="btn btn-primary">Send</button>
+    <div class="header">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <h1>Omega Bank</h1>
+                </div>
+                <div class="col">
+                    <nav class="nav">
+                        <a class="nav-link" href="login.html">Login</a>
+                        <a class="nav-link" href="register.html">Register</a>
+                        <a class="nav-link" href="#services">Products & Services</a>
+                        <a class="nav-link" href="#about">About Us</a>
+                        <a class="nav-link" href="#contact">Contact Us</a>
+                    </nav>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Notification Sound -->
-    <audio id="notificationSound" src="sound.wav"></audio>
+    <div class="container">
+        <h2>Chat with User</h2>
+        <div id="messageDisplay">
+            <!-- Display user information here -->
+        </div>
+        <div class="chat-box">
+            <div class="chat-box-header">
+                <h4>Live Chat</h4>
+            </div>
+            <div id="chatBody" class="chat-box-body">
+                <!-- Messages will be appended here -->
+            </div>
+            <div class="chat-box-footer">
+                <input id="messageInput" type="text" placeholder="Type a reply...">
+                <button id="sendMessage" class="btn btn-primary">Send</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap JS and dependencies -->
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
@@ -73,52 +112,50 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
     <script>
-        // Send message
+        const CHAT_UPDATE_INTERVAL = 3000; // 3 seconds
+
+        window.onload = function() {
+            const userName = localStorage.getItem('userName');
+            const userEmail = localStorage.getItem('userEmail');
+            if (userName && userEmail) {
+                document.getElementById('messageDisplay').innerHTML = `<p><strong>User:</strong> ${userName} (${userEmail})</p>`;
+            }
+
+            startChatPolling();
+        };
+
         document.getElementById('sendMessage').addEventListener('click', function() {
             const message = document.getElementById('messageInput').value;
             if (message.trim()) {
                 appendMessage('agent', message);
                 localStorage.setItem('agentMessage', message);
                 document.getElementById('messageInput').value = '';
-                // Simulate a user reply
-                setTimeout(function() {
-                    localStorage.setItem('userMessage', 'Thank you for your response. I have a follow-up question.');
-                    loadMessages();
-                }, 1000);
             }
         });
 
-        // Append message to chatbox
         function appendMessage(type, message) {
             const chatBody = document.getElementById('chatBody');
-            const messageTypeClass = type === 'agent' ? 'agent-message' : 'user-message';
-            chatBody.innerHTML += `<div class="message ${messageTypeClass}"><strong>${type === 'agent' ? 'Agent' : 'You'}:</strong> ${message}</div>`;
-            chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
-            if (type === 'agent') {
-                document.getElementById('notificationSound').play(); // Play sound for agent replies
-            }
+            const messageTypeClass = type === 'user' ? 'user-message' : 'agent-message';
+            chatBody.innerHTML += `<div class="message ${messageTypeClass}"><strong>${type === 'user' ? 'User' : 'Agent'}:</strong> ${message}</div>`;
+            chatBody.scrollTop = chatBody.scrollHeight;
         }
 
-        // Load messages from localStorage
         function loadMessages() {
-            const agentMessage = localStorage.getItem('agentMessage');
-            if (agentMessage) {
-                appendMessage('agent', agentMessage);
-                localStorage.removeItem('agentMessage');
-                // Play notification sound
-                document.getElementById('notificationSound').play();
-            }
             const userMessage = localStorage.getItem('userMessage');
             if (userMessage) {
                 appendMessage('user', userMessage);
                 localStorage.removeItem('userMessage');
             }
+            const agentMessage = localStorage.getItem('agentMessage');
+            if (agentMessage) {
+                appendMessage('agent', agentMessage);
+                localStorage.removeItem('agentMessage');
+            }
         }
 
-        // Load messages when the page is loaded
-        window.onload = function() {
-            loadMessages();
-        };
+        function startChatPolling() {
+            setInterval(loadMessages, CHAT_UPDATE_INTERVAL);
+        }
     </script>
 </body>
 </html>
