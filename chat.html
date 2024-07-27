@@ -3,61 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Agent</title>
+    <title>Chat with Omega Bank</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
-        /* Add the same styling as before */
-        .chat-box { /* styles here */ }
-        .message { /* styles here */ }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+        }
+        .chat-box {
+            width: 100%;
+            max-width: 600px;
+            height: 80%;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-box-header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+        .chat-box-body {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        .chat-box-footer {
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            display: flex;
+        }
+        .chat-box-footer input {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #d1e7dd;
+            text-align: right;
+            margin-left: 20%;
+        }
+        .agent-message {
+            background-color: #f8d7da;
+            text-align: left;
+            margin-right: 20%;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Chat with User</h2>
-        <div id="messageDisplay">
-            <!-- Display user information here -->
+    <div class="chat-box">
+        <div class="chat-box-header">
+            <h4>Chat with Us</h4>
         </div>
-        <div class="chat-box">
-            <div class="chat-box-header">
-                <h4>Live Chat</h4>
-            </div>
-            <div id="chatBody" class="chat-box-body"></div>
-            <div class="chat-box-footer">
-                <input id="messageInput" type="text" placeholder="Type a reply...">
-                <button id="sendMessage" class="btn btn-primary">Send</button>
-            </div>
+        <div id="chatBody" class="chat-box-body">
+            <!-- Messages will be appended here -->
+        </div>
+        <div class="chat-box-footer">
+            <input id="messageInput" type="text" placeholder="Type a message...">
+            <button id="sendMessage" class="btn btn-primary">Send</button>
         </div>
     </div>
 
-    <audio id="notificationSound" src="notification.wav"></audio>
+    <!-- Notification Sound -->
+    <audio id="notificationSound" src="sound.wav"></audio>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- Firebase Config -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
     <script>
-        const socket = io();
+        // TODO: Replace the following with your app's Firebase project configuration
+       const firebaseConfig = {
+          apiKey: "AIzaSyBA_gGITL3vOX_wymV8m3c7h_2kYxUEL0A",
+          authDomain: "email-5e336.firebaseapp.com",
+          projectId: "email-5e336",
+          storageBucket: "email-5e336.appspot.com",
+          messagingSenderId: "561655323170",
+          appId: "1:561655323170:web:42fcf886c34f2d5a16487b",
+          measurementId: "G-J92WNBY5RL"
+       };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-        window.onload = function() {
-            socket.on('message', function(data) {
-                const messageDisplay = document.getElementById('messageDisplay');
-                if (data.type === 'user') {
-                    messageDisplay.innerHTML = `<p><strong>User:</strong> ${data.text}</p>`;
-                }
+        // Append message to chatbox
+        function appendMessage(type, message) {
+            const chatBody = document.getElementById('chatBody');
+            const messageTypeClass = type === 'user' ? 'user-message' : 'agent-message';
+            chatBody.innerHTML += `<div class="message ${messageTypeClass}"><strong>${type === 'user' ? 'You' : 'Agent'}:</strong> ${message}</div>`;
+            chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
+        }
 
-                const chatBody = document.getElementById('chatBody');
-                chatBody.innerHTML += `<div class="message ${data.type === 'user' ? 'user-message' : 'agent-message'}"><strong>${data.type === 'user' ? 'User' : 'Agent'}:</strong> ${data.text}</div>`;
-                chatBody.scrollTop = chatBody.scrollHeight;
-                if (data.type === 'user') {
-                    document.getElementById('notificationSound').play();
-                }
+        // Send message to the dashboard
+        document.getElementById('sendMessage').addEventListener('click', function() {
+            const message = document.getElementById('messageInput').value;
+            if (message.trim()) {
+                const newMessageKey = database.ref().child('messages').push().key;
+                database.ref('messages/' + newMessageKey).set({
+                    type: 'agent',
+                    message: message
+                });
+                appendMessage('agent', message);
+                document.getElementById('messageInput').value = '';
+            }
+        });
+
+        // Load messages from Firebase
+        function loadMessages() {
+            database.ref('messages').on('child_added', function(snapshot) {
+                const messageData = snapshot.val();
+                appendMessage(messageData.type, messageData.message);
             });
+        }
 
-            document.getElementById('sendMessage').addEventListener('click', function() {
-                const message = document.getElementById('messageInput').value;
-                if (message.trim()) {
-                    socket.emit('message', { type: 'agent', text: `Agent: ${message}` });
-                    document.getElementById('messageInput').value = '';
-                }
-            });
-        };
+        // Load messages initially
+        loadMessages();
     </script>
 </body>
 </html>
