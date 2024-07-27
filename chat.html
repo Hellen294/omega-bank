@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Chat</title>
+    <title>Live Chat - Agent</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <style>
@@ -53,7 +53,7 @@
 <body>
     <div class="chat-box">
         <div class="chat-box-header">
-            <h4>Live Chat</h4>
+            <h4>Live Chat - Agent</h4>
         </div>
         <div id="chatBody" class="chat-box-body">
             <!-- Messages will be appended here -->
@@ -77,12 +77,12 @@
         document.getElementById('sendMessage').addEventListener('click', function() {
             const message = document.getElementById('messageInput').value;
             if (message.trim()) {
-                appendMessage('user', message);
-                localStorage.setItem('userMessage', message);
+                appendMessage('agent', message);
+                localStorage.setItem('agentMessage', message);
                 document.getElementById('messageInput').value = '';
-                // Simulate an agent reply
+                // Simulate a user reply
                 setTimeout(function() {
-                    localStorage.setItem('agentMessage', 'Thank you for your message! We will get back to you soon.');
+                    localStorage.setItem('userMessage', 'Thank you for your response. I have a follow-up question.');
                     loadMessages();
                 }, 1000);
             }
@@ -91,8 +91,8 @@
         // Append message to chatbox
         function appendMessage(type, message) {
             const chatBody = document.getElementById('chatBody');
-            const messageTypeClass = type === 'user' ? 'user-message' : 'agent-message';
-            chatBody.innerHTML += `<div class="message ${messageTypeClass}"><strong>${type === 'user' ? 'You' : 'Agent'}:</strong> ${message}</div>`;
+            const messageTypeClass = type === 'agent' ? 'agent-message' : 'user-message';
+            chatBody.innerHTML += `<div class="message ${messageTypeClass}"><strong>${type === 'agent' ? 'Agent' : 'You'}:</strong> ${message}</div>`;
             chatBody.scrollTop = chatBody.scrollHeight; // Auto scroll to bottom
             if (type === 'agent') {
                 document.getElementById('notificationSound').play(); // Play sound for agent replies
@@ -101,17 +101,17 @@
 
         // Load messages from localStorage
         function loadMessages() {
-            const userMessage = localStorage.getItem('userMessage');
-            if (userMessage) {
-                appendMessage('user', userMessage);
-                localStorage.removeItem('userMessage');
-            }
             const agentMessage = localStorage.getItem('agentMessage');
             if (agentMessage) {
                 appendMessage('agent', agentMessage);
                 localStorage.removeItem('agentMessage');
                 // Play notification sound
                 document.getElementById('notificationSound').play();
+            }
+            const userMessage = localStorage.getItem('userMessage');
+            if (userMessage) {
+                appendMessage('user', userMessage);
+                localStorage.removeItem('userMessage');
             }
         }
 
